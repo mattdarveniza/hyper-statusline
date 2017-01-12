@@ -2,9 +2,7 @@
 const { shell } = require('electron');
 const { exec } = require('child_process');
 const tildify = require('tildify');
-
-// Windows check
-const windows = process.platform === 'win32';
+const shelljs = require('shelljs');
 
 // Config
 exports.decorateConfig = (config) => {
@@ -13,7 +11,7 @@ exports.decorateConfig = (config) => {
         dirtyColor: config.colors.lightYellow,
         arrowsColor: config.colors.blue,
     }, config.hyperStatusLine);
-    const path = windows ? __dirname.replace(/\\/gi, "/") : __dirname;
+    const path = process.platform === 'win32' ? __dirname.replace(/\\/gi, "/") : __dirname;
 
     return Object.assign({}, config, {
         css: `
@@ -141,9 +139,7 @@ let pullArrow;
 
 // Current shell cwd
 const setCwd = (pid) => {
-    const method = windows ? `chdir` : `lsof -p ${pid} | grep cwd | tr -s ' ' | cut -d ' ' -f9-`;
-
-    exec(method, (err, cwd) => {
+    shelljs.exec(`lsof -p ${pid} | grep cwd | tr -s ' ' | cut -d ' ' -f9-`, (err, cwd) => {
         curCwd = cwd.trim();
         setBranch(curCwd);
     })

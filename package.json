@@ -22,6 +22,7 @@
     "statusline"
   ],
   "dependencies": {
+    "shelljs": "^0.7.6",
     "tildify": "^1.2.0"
   }
 }
