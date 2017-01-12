@@ -3,6 +3,9 @@ const { shell } = require('electron');
 const { exec } = require('child_process');
 const tildify = require('tildify');
 
+// Windows check
+const windows = process.platform === 'win32';
+
 // Config
 exports.decorateConfig = (config) => {
     const hyperStatusLine = Object.assign({
@@ -10,6 +13,7 @@ exports.decorateConfig = (config) => {
         dirtyColor: config.colors.lightYellow,
         arrowsColor: config.colors.blue,
     }, config.hyperStatusLine);
+    const path = windows ? __dirname.replace(/\\/gi, "/") : __dirname;
 
     return Object.assign({}, config, {
         css: `
@@ -84,7 +88,7 @@ exports.decorateConfig = (config) => {
                 overflow: hidden;
             }
             .item_folder:before {
-                -webkit-mask-image: url('${__dirname}/icons/folder.svg');
+                -webkit-mask-image: url('${path}/icons/folder.svg');
                 -webkit-mask-size: 14px 12px;
             }
             .item_branch {
@@ -92,7 +96,7 @@ exports.decorateConfig = (config) => {
             }
             .item_branch:before {
                 left: 14.5px;
-                -webkit-mask-image: url('${__dirname}/icons/git-branch.svg');
+                -webkit-mask-image: url('${path}/icons/git-branch.svg');
                 -webkit-mask-size: 9px 12px;
             }
             .item_click:hover {
@@ -112,11 +116,11 @@ exports.decorateConfig = (config) => {
                 display: inline-block;
             }
             .icon_dirty {
-                -webkit-mask-image: url('${__dirname}/icons/git-dirty.svg');
+                -webkit-mask-image: url('${path}/icons/git-dirty.svg');
                 background-color: ${hyperStatusLine.dirtyColor};
             }
             .icon_push, .icon_pull {
-                -webkit-mask-image: url('${__dirname}/icons/git-arrow.svg');
+                -webkit-mask-image: url('${path}/icons/git-arrow.svg');
                 background-color: ${hyperStatusLine.arrowsColor};
             }
             .icon_pull {
@@ -137,7 +141,9 @@ let pullArrow;
 
 // Current shell cwd
 const setCwd = (pid) => {
-    exec(`lsof -p ${pid} | grep cwd | tr -s ' ' | cut -d ' ' -f9-`, (err, cwd) => {
+    const method = windows ? `chdir` : `lsof -p ${pid} | grep cwd | tr -s ' ' | cut -d ' ' -f9-`;
+
+    exec(method, (err, cwd) => {
         curCwd = cwd.trim();
         setBranch(curCwd);
     })
